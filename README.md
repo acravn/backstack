@@ -12,4 +12,48 @@ BACK stack refers to a combination of Backstage, ArgoCD, Crossplane, and Kyverno
 
 This deployment uses Kind to create a local Kubernetes cluster and provisions the BACK stack components for demonstration and development purposes.
  
- Future iterations of this repository will provide an alternative deployment that swaps ArgoCD for FluxCD, another popular GitOps tool.
+Future iterations of this repository will provide an alternative deployment that swaps ArgoCD for FluxCD, another popular GitOps tool.
+
+## Setting up the local cluster with Kind
+
+To create a local Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/), ensure you have Kind installed:
+
+```sh
+brew install kind
+```
+
+Then, create the cluster using the provided config:
+
+```sh
+kind create cluster --name backstack-demo --config kind/config.yaml
+```
+
+This will start a cluster with one control-plane and one worker node. You can verify your cluster is running with:
+
+```sh
+kubectl cluster-info --context kind-backstack-demo
+```
+
+To delete the cluster when finished:
+
+```sh
+kind delete cluster --name backstack-demo
+```
+
+### Install Argocd
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/manifests/install.yaml -n argocd
+```
+
+### Setup Backstage
+
+Build the image
+
+```sh
+cd backstage
+docker image build . -f packages/backend/Dockerfile --tag backstage
+kind load docker-image backstage -n backstage-demo
+```
+
+### Create Argocd application
